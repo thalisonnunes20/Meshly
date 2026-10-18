@@ -131,8 +131,3 @@ O aplicativo salva automaticamente as credenciais e redes salvas em:
 - **Windows:** `%APPDATA%\Meshly\config.json`
 - **Linux:** `~/.meshly/config.json`
 
----
-
-## Licença
-
-Distribuído sob a licença **MIT**. Veja o arquivo [LICENSE](LICENSE) para mais informações.
