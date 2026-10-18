@@ -66,6 +66,20 @@ export namespace main {
 		    return a;
 		}
 	}
+	export class SavedRoom {
+	    name: string;
+	    password: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new SavedRoom(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.password = source["password"];
+	    }
+	}
 	export class ServerHealth {
 	    status: string;
 	    service: string;
@@ -90,9 +104,51 @@ export namespace main {
 	        this.client_public_key = source["client_public_key"];
 	    }
 	}
+	export class SessionState {
+	    is_connected: boolean;
+	    endpoint: string;
+	    nickname: string;
+	    active_room?: RoomState;
+	    saved_rooms: SavedRoom[];
+	    server_info?: ServerHealth;
+	
+	    static createFrom(source: any = {}) {
+	        return new SessionState(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.is_connected = source["is_connected"];
+	        this.endpoint = source["endpoint"];
+	        this.nickname = source["nickname"];
+	        this.active_room = this.convertValues(source["active_room"], RoomState);
+	        this.saved_rooms = this.convertValues(source["saved_rooms"], SavedRoom);
+	        this.server_info = this.convertValues(source["server_info"], ServerHealth);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class StoredConfig {
 	    endpoint: string;
 	    nickname: string;
+	    saved_rooms: SavedRoom[];
+	    active_room_name: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new StoredConfig(source);
@@ -102,7 +158,27 @@ export namespace main {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.endpoint = source["endpoint"];
 	        this.nickname = source["nickname"];
+	        this.saved_rooms = this.convertValues(source["saved_rooms"], SavedRoom);
+	        this.active_room_name = source["active_room_name"];
 	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 
 }

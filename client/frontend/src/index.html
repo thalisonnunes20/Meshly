@@ -18,35 +18,32 @@
     <div id="screen-connect" class="screen active">
       <div class="connect-header">
         <div class="brand-logo">
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <circle cx="16" cy="16" r="14" stroke="#10b981" stroke-width="2"/>
-            <circle cx="8" cy="16" r="3" fill="#10b981"/>
-            <circle cx="24" cy="16" r="3" fill="#10b981"/>
-            <circle cx="16" cy="8" r="3" fill="#10b981"/>
-            <circle cx="16" cy="24" r="3" fill="#10b981"/>
-            <line x1="8" y1="16" x2="24" y2="16" stroke="#10b981" stroke-width="1.5" stroke-dasharray="2 2"/>
-            <line x1="16" y1="8" x2="16" y2="24" stroke="#10b981" stroke-width="1.5" stroke-dasharray="2 2"/>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+            <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+            <line x1="6" y1="6" x2="6.01" y2="6"></line>
+            <line x1="6" y1="18" x2="6.01" y2="18"></line>
           </svg>
         </div>
         <h1 class="brand-title">MESHLY</h1>
-        <p class="brand-subtitle">Rede Local Virtual WireGuard</p>
+        <p class="brand-subtitle">Virtual Private LAN</p>
       </div>
 
       <div class="card connect-card">
         <div class="form-group">
-          <label for="server-endpoint">Endereço do Servidor (IP ou Domínio)</label>
+          <label for="server-endpoint">Servidor (IP ou Domínio)</label>
           <div class="input-wrapper">
-            <span class="input-icon">🌐</span>
-            <input type="text" id="server-endpoint" placeholder="ex: 192.168.10.2:8080" autocomplete="off" spellcheck="false">
+            <svg class="field-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            <input type="text" id="server-endpoint" placeholder="192.168.10.2:8080" autocomplete="off" spellcheck="false">
           </div>
-          <span class="field-hint">A porta padrão da API é :8080</span>
+          <span class="field-hint">Porta padrão: :8080</span>
         </div>
 
         <div class="form-group">
-          <label for="client-nickname">Seu Apelido na Rede</label>
+          <label for="client-nickname">Apelido na Rede</label>
           <div class="input-wrapper">
-            <span class="input-icon">💻</span>
-            <input type="text" id="client-nickname" placeholder="ex: Thalison-PC" autocomplete="off" maxlength="24">
+            <svg class="field-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <input type="text" id="client-nickname" placeholder="Meu-PC" autocomplete="off" maxlength="24">
           </div>
         </div>
 
@@ -54,12 +51,11 @@
 
         <button id="btn-connect" class="btn btn-primary">
           <span class="btn-text">Conectar ao Servidor</span>
-          <span class="spinner hidden"></span>
         </button>
       </div>
 
       <div class="connect-footer">
-        <span>Meshly v0.1.0 • Split-Tunneling Ativo</span>
+        <span>v0.1.0 • WireGuard Protocol</span>
       </div>
     </div>
 
@@ -67,102 +63,102 @@
          TELA 2: PAINEL PRINCIPAL DE REDES
          ============================================== -->
     <div id="screen-network" class="screen">
-      <!-- Topbar com status do servidor -->
+      <!-- Topbar Minimalista -->
       <header class="network-topbar">
         <div class="server-badge">
           <span class="status-dot online"></span>
           <span id="topbar-endpoint" class="server-name">192.168.10.2</span>
         </div>
         <div class="topbar-actions">
-          <span id="topbar-nickname" class="user-nickname">Thalison-PC</span>
-          <button id="btn-disconnect-server" class="btn-icon" title="Trocar de Servidor">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          <span id="topbar-nickname" class="user-nickname">Meu-PC</span>
+          <button id="btn-disconnect-server" class="btn-icon" title="Trocar Servidor">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
           </button>
         </div>
       </header>
 
-      <!-- Power Card: Liga/Desliga e IP Virtual -->
-      <section class="power-card">
-        <div class="power-left">
-          <button id="btn-power-toggle" class="power-btn active" title="Ligar/Desligar VPN">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
-              <line x1="12" y1="2" x2="12" y2="12"></line>
-            </svg>
-          </button>
-          <div class="power-info">
-            <span class="power-label" id="power-status-text">Túnel Ativo</span>
-            <div class="ip-container">
-              <span id="my-virtual-ip" class="mono-ip">---.---.---.---</span>
-              <button id="btn-copy-my-ip" class="btn-copy" title="Copiar IPv4">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                <span class="copy-text">Copiar</span>
-              </button>
-            </div>
+      <!-- Power Bar Minimalista -->
+      <section class="power-bar">
+        <button id="btn-power-toggle" class="power-btn active" title="Ligar/Desligar VPN">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25">
+            <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+            <line x1="12" y1="2" x2="12" y2="12"></line>
+          </svg>
+        </button>
+        <div class="power-details">
+          <span class="power-status" id="power-status-text">Conectado</span>
+          <div class="ip-row">
+            <span id="my-virtual-ip" class="mono-ip">---.---.---.---</span>
+            <button id="btn-copy-my-ip" class="btn-copy" title="Copiar IPv4">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              <span class="copy-text">Copiar</span>
+            </button>
           </div>
         </div>
       </section>
 
-      <!-- Abas de Gerenciamento de Rede -->
-      <div class="network-actions-bar">
-        <button id="tab-join" class="tab-btn active">Entrar em Rede</button>
-        <button id="tab-create" class="tab-btn">Criar Nova Rede</button>
+      <!-- Abas de Ação de Rede -->
+      <div class="action-nav">
+        <button id="tab-join" class="tab-item active">Entrar em Rede</button>
+        <button id="tab-create" class="tab-item">Criar Rede</button>
       </div>
 
       <!-- Formulário: Entrar em Rede -->
-      <div id="form-join-network" class="network-form-panel">
-        <div class="form-row">
+      <div id="form-join-network" class="network-form">
+        <div class="form-inputs">
           <input type="text" id="join-room-name" placeholder="Nome da Rede" autocomplete="off">
-          <input type="password" id="join-room-pass" placeholder="Senha da Rede">
+          <input type="password" id="join-room-pass" placeholder="Senha">
           <button id="btn-join-submit" class="btn btn-sm btn-primary">Entrar</button>
         </div>
         <div id="join-error" class="alert-box error hidden"></div>
       </div>
 
       <!-- Formulário: Criar Nova Rede -->
-      <div id="form-create-network" class="network-form-panel hidden">
-        <div class="form-row">
+      <div id="form-create-network" class="network-form hidden">
+        <div class="form-inputs">
           <input type="text" id="create-room-name" placeholder="Nome da Nova Rede" autocomplete="off">
-          <input type="password" id="create-room-pass" placeholder="Definir Senha">
-          <button id="btn-create-submit" class="btn btn-sm btn-success">Criar</button>
+          <input type="password" id="create-room-pass" placeholder="Senha">
+          <button id="btn-create-submit" class="btn btn-sm btn-primary">Criar</button>
         </div>
         <div id="create-error" class="alert-box error hidden"></div>
       </div>
 
-      <!-- Área da Sala Ativa / Lista de Amigos -->
-      <main class="network-tree-container">
-        <!-- Quando conectado a uma rede -->
-        <div id="active-room-view" class="room-view hidden">
+      <!-- Área Principal: Sala Ativa ou Lista Salva -->
+      <main class="network-body">
+        <!-- Sala Ativa -->
+        <div id="active-room-view" class="room-container hidden">
           <div class="room-header">
-            <div class="room-title-group">
-              <span class="room-caret">▼</span>
-              <span id="active-room-name" class="room-name">MinhaRede</span>
-              <span id="active-room-subnet" class="room-subnet">26.0.1.0/24</span>
+            <div class="room-meta">
+              <span class="room-indicator"></span>
+              <span id="active-room-name" class="room-title">NomeDaRede</span>
+              <span id="active-room-subnet" class="room-cidr">26.0.1.0/24</span>
             </div>
-            <button id="btn-leave-room" class="btn-text-danger" title="Sair desta Rede">Sair</button>
+            <button id="btn-leave-room" class="btn-subtle-danger" title="Desconectar desta rede">Desconectar</button>
           </div>
 
           <!-- Lista de Peers -->
-          <div id="peers-list" class="peers-list">
-            <!-- Peers injetados via JS -->
-          </div>
+          <div id="peers-list" class="peers-list"></div>
         </div>
 
-        <!-- Estado Vazio (Sem rede conectada) -->
-        <div id="empty-network-view" class="empty-view">
-          <div class="empty-icon">🎮</div>
-          <h3>Nenhuma Rede Conectada</h3>
-          <p>Entre em uma rede existente com seus amigos ou crie uma nova rede acima para começar a jogar em LAN.</p>
+        <!-- Redes Salvas (Histórico do Usuário) -->
+        <div id="saved-rooms-section" class="saved-section hidden">
+          <div class="section-title">Redes Salvas</div>
+          <div id="saved-rooms-list" class="saved-list"></div>
+        </div>
+
+        <!-- Estado Vazio -->
+        <div id="empty-network-view" class="empty-state">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="empty-icon"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+          <h3>Nenhuma Rede Ativa</h3>
+          <p>Crie ou entre em uma rede acima para iniciar a conexão com seus amigos.</p>
         </div>
       </main>
 
-      <!-- Rodapé com estatísticas -->
+      <!-- Rodapé Minimalista -->
       <footer class="network-footer">
-        <span id="footer-status">WireGuard Conectado</span>
-        <span class="footer-dot">•</span>
         <span id="footer-peer-count">0 membros</span>
-        <span class="footer-dot">•</span>
-        <span class="footer-latency" id="footer-latency">-- ms</span>
+        <span class="footer-separator">•</span>
+        <span id="footer-latency" class="footer-ping">-- ms</span>
       </footer>
     </div>
 

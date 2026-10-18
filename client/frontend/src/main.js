@@ -4,6 +4,7 @@ let currentNickname = "";
 let currentRoom = null;
 let isTunnelActive = true;
 let clientPublicKey = "";
+let savedRooms = [];
 
 // Elements - Screen 1
 const screenConnect = document.getElementById("screen-connect");
@@ -44,23 +45,47 @@ const activeRoomName = document.getElementById("active-room-name");
 const activeRoomSubnet = document.getElementById("active-room-subnet");
 const btnLeaveRoom = document.getElementById("btn-leave-room");
 const peersList = document.getElementById("peers-list");
+
+const savedRoomsSection = document.getElementById("saved-rooms-section");
+const savedRoomsList = document.getElementById("saved-rooms-list");
 const footerPeerCount = document.getElementById("footer-peer-count");
 
-// Initialize on Load
+// Initialize on Load (Session Restore)
 window.addEventListener("DOMContentLoaded", async () => {
   try {
     if (window.go && window.go.main && window.go.main.App) {
-      const cfg = await window.go.main.App.GetStoredConfig();
-      if (cfg) {
-        inputEndpoint.value = cfg.endpoint || "192.168.10.2:8080";
-        inputNickname.value = cfg.nickname || "";
+      // Automatic session initialization
+      const session = await window.go.main.App.InitSession();
+      
+      if (session) {
+        inputEndpoint.value = session.endpoint || "192.168.10.2:8080";
+        inputNickname.value = session.nickname || "";
+        savedRooms = session.saved_rooms || [];
+
+        if (session.is_connected && session.server_info) {
+          currentServer = session.server_info;
+          currentNickname = session.nickname;
+          clientPublicKey = session.server_info.client_public_key;
+
+          topbarEndpoint.textContent = session.endpoint.replace(/https?:\/\//, "");
+          topbarNickname.textContent = session.nickname;
+
+          screenConnect.classList.remove("active");
+          screenNetwork.classList.add("active");
+
+          if (session.active_room) {
+            renderRoom(session.active_room);
+          } else {
+            renderSavedRooms();
+          }
+        }
       }
     }
   } catch (err) {
-    console.error("Failed to load stored config:", err);
+    console.error("Session restore failed:", err);
   }
 
-  // Setup Wails runtime event listener
+  // WebSocket / Runtime Event listener
   if (window.runtime && window.runtime.EventsOn) {
     window.runtime.EventsOn("room_event", (event) => {
       handleRoomEvent(event);
@@ -69,7 +94,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 });
 
 // ==========================================
-// SCREEN 1: CONECTAR AO SERVIDOR
+// TELA 1: CONECTAR AO SERVIDOR
 // ==========================================
 btnConnect.addEventListener("click", async () => {
   const endpoint = inputEndpoint.value.trim();
@@ -78,11 +103,11 @@ btnConnect.addEventListener("click", async () => {
   hideError(connectError);
 
   if (!endpoint) {
-    showError(connectError, "Digite o endereço de IP ou domínio do servidor.");
+    showError(connectError, "Informe o endereço do servidor.");
     return;
   }
   if (!nickname) {
-    showError(connectError, "Defina um apelido para ser identificado na rede.");
+    showError(connectError, "Informe um apelido para a rede.");
     return;
   }
 
@@ -95,13 +120,15 @@ btnConnect.addEventListener("click", async () => {
     currentNickname = nickname;
     clientPublicKey = health.client_public_key;
 
-    // Configure Screen 2
     topbarEndpoint.textContent = endpoint.replace(/https?:\/\//, "");
     topbarNickname.textContent = nickname;
 
-    // Switch screens
     screenConnect.classList.remove("active");
     screenNetwork.classList.add("active");
+
+    const cfg = await window.go.main.App.GetStoredConfig();
+    savedRooms = cfg.saved_rooms || [];
+    renderSavedRooms();
   } catch (err) {
     showError(connectError, err.message || err.toString());
   } finally {
@@ -110,7 +137,6 @@ btnConnect.addEventListener("click", async () => {
   }
 });
 
-// Desconectar e voltar para Tela 1
 btnDisconnectServer.addEventListener("click", async () => {
   if (currentRoom) {
     await window.go.main.App.LeaveRoom();
@@ -150,14 +176,13 @@ btnCreateSubmit.addEventListener("click", async () => {
 
   hideError(createError);
   if (!name || pass.length < 3) {
-    showError(createError, "Nome da rede e senha (mín. 3 caracteres) são obrigatórios.");
+    showError(createError, "Nome e senha (mín. 3 caracteres) são obrigatórios.");
     return;
   }
 
   btnCreateSubmit.disabled = true;
   try {
     await window.go.main.App.CreateRoom(name, pass);
-    // Automatically join the newly created room
     const roomState = await window.go.main.App.JoinRoom(name, pass);
     renderRoom(roomState);
     inputCreateName.value = "";
@@ -178,7 +203,7 @@ btnJoinSubmit.addEventListener("click", async () => {
 
   hideError(joinError);
   if (!name || !pass) {
-    showError(joinError, "Digite o nome e a senha da rede.");
+    showError(joinError, "Informe o nome e a senha da rede.");
     return;
   }
 
@@ -196,7 +221,7 @@ btnJoinSubmit.addEventListener("click", async () => {
 });
 
 // ==========================================
-// SAIR DA REDE ATUAL
+// DESCONECTAR DA SALA ATUAL
 // ==========================================
 btnLeaveRoom.addEventListener("click", async () => {
   try {
@@ -206,6 +231,10 @@ btnLeaveRoom.addEventListener("click", async () => {
     emptyNetworkView.classList.remove("hidden");
     myVirtualIP.textContent = "---.---.---.---";
     footerPeerCount.textContent = "0 membros";
+
+    const cfg = await window.go.main.App.GetStoredConfig();
+    savedRooms = cfg.saved_rooms || [];
+    renderSavedRooms();
   } catch (err) {
     console.error("Error leaving room:", err);
   }
@@ -217,8 +246,8 @@ btnLeaveRoom.addEventListener("click", async () => {
 function renderRoom(roomState) {
   currentRoom = roomState;
 
-  // Atualizar visual
   emptyNetworkView.classList.add("hidden");
+  savedRoomsSection.classList.add("hidden");
   activeRoomView.classList.remove("hidden");
 
   activeRoomName.textContent = roomState.room_name;
@@ -244,7 +273,7 @@ function renderPeers(peers) {
         <div class="peer-info">
           <span class="peer-nickname">
             ${escapeHTML(peer.nickname)}
-            ${isSelf ? '<span class="self-badge">Você</span>' : ''}
+            ${isSelf ? '<span class="self-tag">Você</span>' : ''}
           </span>
           <span class="peer-ip">${peer.virtual_ip}</span>
         </div>
@@ -259,7 +288,7 @@ function renderPeers(peers) {
 
     peersList.appendChild(item);
 
-    // Se não for o próprio peer, testa o ping silenciosamente
+    // Silent background ping
     if (!isSelf && window.go && window.go.main && window.go.main.App) {
       setTimeout(async () => {
         try {
@@ -269,14 +298,47 @@ function renderPeers(peers) {
             pingEl.textContent = ms >= 0 ? `${ms} ms` : "timeout";
           }
         } catch (e) {}
-      }, 500);
+      }, 300);
     }
   });
 }
 
-// ==========================================
-// BOTÃO LIGA / DESLIGA TÚNEL
-// ==========================================
+function renderSavedRooms() {
+  if (!savedRooms || savedRooms.length === 0) {
+    savedRoomsSection.classList.add("hidden");
+    return;
+  }
+
+  savedRoomsSection.classList.remove("hidden");
+  savedRoomsList.innerHTML = savedRooms.map(r => `
+    <div class="saved-room-item">
+      <span class="saved-name">${escapeHTML(r.name)}</span>
+      <div class="saved-actions">
+        <button class="btn btn-sm btn-primary" onclick="reconnectRoom('${escapeHTML(r.name)}', '${escapeHTML(r.password)}')">Conectar</button>
+        <button class="btn-subtle-danger" onclick="forgetRoom('${escapeHTML(r.name)}')">Remover</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function reconnectRoom(name, pass) {
+  try {
+    const roomState = await window.go.main.App.JoinRoom(name, pass);
+    renderRoom(roomState);
+  } catch (err) {
+    alert("Erro ao reconectar na rede: " + err);
+  }
+}
+
+async function forgetRoom(name) {
+  if (confirm(`Remover a rede "${name}" das suas redes salvas?`)) {
+    const cfg = await window.go.main.App.ForgetRoom(name);
+    savedRooms = cfg.saved_rooms || [];
+    renderSavedRooms();
+  }
+}
+
+// Power Toggle
 btnPowerToggle.addEventListener("click", async () => {
   isTunnelActive = !isTunnelActive;
 
@@ -286,14 +348,13 @@ btnPowerToggle.addEventListener("click", async () => {
 
   if (isTunnelActive) {
     btnPowerToggle.classList.add("active");
-    powerStatusText.textContent = "Túnel Ativo";
+    powerStatusText.textContent = "Conectado";
   } else {
     btnPowerToggle.classList.remove("active");
-    powerStatusText.textContent = "Túnel Desativado";
+    powerStatusText.textContent = "Desconectado";
   }
 });
 
-// Copiar meu próprio IP
 btnCopyMyIP.addEventListener("click", () => {
   const ip = myVirtualIP.textContent;
   if (ip && !ip.includes("-")) {
@@ -301,12 +362,10 @@ btnCopyMyIP.addEventListener("click", () => {
   }
 });
 
-// Eventos WebSocket em tempo real
 function handleRoomEvent(event) {
   if (!currentRoom || event.room_id !== currentRoom.room_id) return;
 
   if (event.type === "peer_joined" || event.type === "peer_left" || event.type === "peer_status") {
-    // Re-obter lista atualizada
     if (window.go && window.go.main && window.go.main.App) {
       window.go.main.App.GetActiveRoom().then((room) => {
         if (room && room.peers) {
@@ -323,7 +382,7 @@ function copyText(text, btnElement) {
   const textSpan = btnElement.querySelector(".copy-text");
   if (textSpan) {
     const original = textSpan.textContent;
-    textSpan.textContent = "Copiado!";
+    textSpan.textContent = "Copiado";
     btnElement.classList.add("copied");
     setTimeout(() => {
       textSpan.textContent = original;

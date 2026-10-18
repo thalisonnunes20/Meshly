@@ -6,16 +6,18 @@ export function ConnectServer(arg1:string,arg2:string):Promise<main.ServerHealth
 
 export function CreateRoom(arg1:string,arg2:string):Promise<Record<string, any>>;
 
+export function ForgetRoom(arg1:string):Promise<main.StoredConfig>;
+
 export function GetActiveRoom():Promise<main.RoomState>;
 
 export function GetStoredConfig():Promise<main.StoredConfig>;
+
+export function InitSession():Promise<main.SessionState>;
 
 export function JoinRoom(arg1:string,arg2:string):Promise<main.RoomState>;
 
 export function LeaveRoom():Promise<void>;
 
 export function PingPeer(arg1:string):Promise<number>;
-
-export function SaveStoredConfig(arg1:string,arg2:string):Promise<void>;
 
 export function ToggleTunnel(arg1:boolean):Promise<boolean>;

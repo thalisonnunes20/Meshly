@@ -25,9 +25,16 @@ import (
 	"golang.org/x/crypto/curve25519"
 )
 
+type SavedRoom struct {
+	Name     string `json:"name"`
+	Password string `json:"password"`
+}
+
 type StoredConfig struct {
-	Endpoint string `json:"endpoint"`
-	Nickname string `json:"nickname"`
+	Endpoint       string      `json:"endpoint"`
+	Nickname       string      `json:"nickname"`
+	SavedRooms     []SavedRoom `json:"saved_rooms"`
+	ActiveRoomName string      `json:"active_room_name"`
 }
 
 type KeyPair struct {
@@ -63,6 +70,15 @@ type RoomState struct {
 	ServerEndpoint  string `json:"server_endpoint"`
 	ServerPublicKey string `json:"server_public_key"`
 	Peers           []Peer `json:"peers"`
+}
+
+type SessionState struct {
+	IsConnected bool          `json:"is_connected"`
+	Endpoint    string        `json:"endpoint"`
+	Nickname    string        `json:"nickname"`
+	ActiveRoom  *RoomState    `json:"active_room"`
+	SavedRooms  []SavedRoom   `json:"saved_rooms"`
+	ServerInfo  *ServerHealth `json:"server_info"`
 }
 
 type App struct {
@@ -125,13 +141,28 @@ func (a *App) loadOrGenerateKeys() {
 	}
 }
 
-// GetStoredConfig loads last used endpoint and nickname
-func (a *App) GetStoredConfig() StoredConfig {
+func (a *App) loadConfig() StoredConfig {
 	cfgFile := filepath.Join(a.appDir, "config.json")
 	var cfg StoredConfig
 	if data, err := os.ReadFile(cfgFile); err == nil {
 		_ = json.Unmarshal(data, &cfg)
 	}
+	if cfg.SavedRooms == nil {
+		cfg.SavedRooms = []SavedRoom{}
+	}
+	return cfg
+}
+
+func (a *App) saveConfig(cfg StoredConfig) {
+	cfgFile := filepath.Join(a.appDir, "config.json")
+	if data, err := json.MarshalIndent(cfg, "", "  "); err == nil {
+		_ = os.WriteFile(cfgFile, data, 0600)
+	}
+}
+
+// GetStoredConfig loads configuration
+func (a *App) GetStoredConfig() StoredConfig {
+	cfg := a.loadConfig()
 	if cfg.Endpoint == "" {
 		cfg.Endpoint = "192.168.10.2:8080"
 	}
@@ -145,16 +176,42 @@ func (a *App) GetStoredConfig() StoredConfig {
 	return cfg
 }
 
-// SaveStoredConfig saves endpoint and nickname
-func (a *App) SaveStoredConfig(endpoint, nickname string) {
-	cfg := StoredConfig{
-		Endpoint: strings.TrimSpace(endpoint),
-		Nickname: strings.TrimSpace(nickname),
+// InitSession loads stored configuration, connects to the server and auto-restores the active room
+func (a *App) InitSession() *SessionState {
+	cfg := a.loadConfig()
+	state := &SessionState{
+		IsConnected: false,
+		Endpoint:    cfg.Endpoint,
+		Nickname:    cfg.Nickname,
+		SavedRooms:  cfg.SavedRooms,
 	}
-	cfgFile := filepath.Join(a.appDir, "config.json")
-	if data, err := json.MarshalIndent(cfg, "", "  "); err == nil {
-		_ = os.WriteFile(cfgFile, data, 0600)
+
+	if cfg.Endpoint == "" || cfg.Nickname == "" {
+		return state
 	}
+
+	// Try connecting to the server
+	health, err := a.ConnectServer(cfg.Endpoint, cfg.Nickname)
+	if err != nil {
+		return state
+	}
+
+	state.IsConnected = true
+	state.ServerInfo = health
+
+	// If there was an active room, auto-rejoin it
+	if cfg.ActiveRoomName != "" {
+		for _, r := range cfg.SavedRooms {
+			if strings.EqualFold(r.Name, cfg.ActiveRoomName) {
+				if roomState, err := a.JoinRoom(r.Name, r.Password); err == nil {
+					state.ActiveRoom = roomState
+				}
+				break
+			}
+		}
+	}
+
+	return state
 }
 
 // ConnectServer verifies health of the Meshly server
@@ -169,7 +226,6 @@ func (a *App) ConnectServer(rawEndpoint, nickname string) (*ServerHealth, error)
 		return nil, errors.New("apelido não pode ser vazio")
 	}
 
-	// Format base URL
 	baseURL := rawEndpoint
 	if !strings.HasPrefix(baseURL, "http://") && !strings.HasPrefix(baseURL, "https://") {
 		baseURL = "http://" + baseURL
@@ -196,7 +252,11 @@ func (a *App) ConnectServer(rawEndpoint, nickname string) (*ServerHealth, error)
 	a.nickname = nickname
 	a.mu.Unlock()
 
-	a.SaveStoredConfig(rawEndpoint, nickname)
+	// Persist endpoint & nickname while preserving saved rooms
+	cfg := a.loadConfig()
+	cfg.Endpoint = rawEndpoint
+	cfg.Nickname = nickname
+	a.saveConfig(cfg)
 
 	health.ClientPublicKey = a.keys.PublicKey
 	return &health, nil
@@ -240,7 +300,7 @@ func (a *App) CreateRoom(name, password string) (map[string]interface{}, error) 
 	return result, nil
 }
 
-// JoinRoom joins an existing room and gets assigned a virtual IP
+// JoinRoom joins an existing room and persists it for the user
 func (a *App) JoinRoom(roomName, password string) (*RoomState, error) {
 	a.mu.RLock()
 	endpoint := a.endpoint
@@ -306,6 +366,25 @@ func (a *App) JoinRoom(roomName, password string) (*RoomState, error) {
 	a.currentRoom = roomState
 	a.isTunnelActive = true
 	a.mu.Unlock()
+
+	// Persist active room and update saved rooms list
+	cfg := a.loadConfig()
+	cfg.ActiveRoomName = result.RoomName
+	found := false
+	for i, r := range cfg.SavedRooms {
+		if strings.EqualFold(r.Name, result.RoomName) {
+			cfg.SavedRooms[i].Password = password
+			found = true
+			break
+		}
+	}
+	if !found {
+		cfg.SavedRooms = append(cfg.SavedRooms, SavedRoom{
+			Name:     result.RoomName,
+			Password: password,
+		})
+	}
+	a.saveConfig(cfg)
 
 	// Generate client wireguard config file locally
 	a.generateWireGuardConfig(roomState)
@@ -381,7 +460,7 @@ func (a *App) startWebSocket(endpoint, roomID, pubKey string) {
 	}
 }
 
-// LeaveRoom exits current room
+// LeaveRoom exits current room and clears active room from config
 func (a *App) LeaveRoom() error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -406,7 +485,30 @@ func (a *App) LeaveRoom() error {
 
 	a.currentRoom = nil
 	a.isTunnelActive = false
+
+	// Clear active room in saved config
+	cfg := a.loadConfig()
+	cfg.ActiveRoomName = ""
+	a.saveConfig(cfg)
+
 	return nil
+}
+
+// ForgetRoom removes a room from saved networks
+func (a *App) ForgetRoom(roomName string) StoredConfig {
+	cfg := a.loadConfig()
+	filtered := make([]SavedRoom, 0, len(cfg.SavedRooms))
+	for _, r := range cfg.SavedRooms {
+		if !strings.EqualFold(r.Name, roomName) {
+			filtered = append(filtered, r)
+		}
+	}
+	cfg.SavedRooms = filtered
+	if strings.EqualFold(cfg.ActiveRoomName, roomName) {
+		cfg.ActiveRoomName = ""
+	}
+	a.saveConfig(cfg)
+	return cfg
 }
 
 // ToggleTunnel toggles VPN tunnel state
@@ -417,7 +519,7 @@ func (a *App) ToggleTunnel(enable bool) bool {
 	return a.isTunnelActive
 }
 
-// PingPeer pings an IP and returns latency in milliseconds (-1 if unreachable)
+// PingPeer pings an IP silently in the background
 func (a *App) PingPeer(ip string) int {
 	cmd := exec.Command("ping", "-n", "1", "-w", "1000", ip)
 	cmd.SysProcAttr = &syscall.SysProcAttr{

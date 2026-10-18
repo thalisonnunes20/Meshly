@@ -10,12 +10,20 @@ export function CreateRoom(arg1, arg2) {
   return window['go']['main']['App']['CreateRoom'](arg1, arg2);
 }
 
+export function ForgetRoom(arg1) {
+  return window['go']['main']['App']['ForgetRoom'](arg1);
+}
+
 export function GetActiveRoom() {
   return window['go']['main']['App']['GetActiveRoom']();
 }
 
 export function GetStoredConfig() {
   return window['go']['main']['App']['GetStoredConfig']();
+}
+
+export function InitSession() {
+  return window['go']['main']['App']['InitSession']();
 }
 
 export function JoinRoom(arg1, arg2) {
@@ -28,10 +36,6 @@ export function LeaveRoom() {
 
 export function PingPeer(arg1) {
   return window['go']['main']['App']['PingPeer'](arg1);
-}
-
-export function SaveStoredConfig(arg1, arg2) {
-  return window['go']['main']['App']['SaveStoredConfig'](arg1, arg2);
 }
 
 export function ToggleTunnel(arg1) {
