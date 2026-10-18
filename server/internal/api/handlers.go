@@ -30,7 +30,8 @@ func NewServer(cfg *config.Config, st *store.Store, wg *wireguard.Manager, hub *
 func (s *Server) Routes() http.Handler {
 	mux := http.NewServeMux()
 
-	// Health check
+	// Health check (both at root / and /api/v1/health)
+	mux.HandleFunc("GET /{$}", s.handleHealth)
 	mux.HandleFunc("GET /api/v1/health", s.handleHealth)
 
 	// Room operations
