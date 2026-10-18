@@ -30,8 +30,11 @@ func NewServer(cfg *config.Config, st *store.Store, wg *wireguard.Manager, hub *
 func (s *Server) Routes() http.Handler {
 	mux := http.NewServeMux()
 
-	// Health check (both at root / and /api/v1/health)
-	mux.HandleFunc("GET /{$}", s.handleHealth)
+	// Web Admin Dashboard (served at root / and /admin)
+	mux.HandleFunc("GET /{$}", s.handleDashboard)
+	mux.HandleFunc("GET /admin", s.handleDashboard)
+
+	// Health check
 	mux.HandleFunc("GET /api/v1/health", s.handleHealth)
 
 	// Room operations
@@ -39,6 +42,12 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("POST /api/v1/rooms/join", s.handleJoinRoom)
 	mux.HandleFunc("POST /api/v1/rooms/leave", s.handleLeaveRoom)
 	mux.HandleFunc("GET /api/v1/rooms/{id}/peers", s.handleListPeers)
+
+	// Admin API operations
+	mux.HandleFunc("GET /api/v1/admin/rooms", s.handleAdminListRooms)
+	mux.HandleFunc("DELETE /api/v1/admin/rooms/{id}", s.handleAdminDeleteRoom)
+	mux.HandleFunc("DELETE /api/v1/admin/rooms/{id}/peers/{pubkey}", s.handleAdminKickPeer)
+	mux.HandleFunc("PUT /api/v1/admin/rooms/{id}", s.handleAdminUpdateRoom)
 
 	// WebSocket
 	mux.HandleFunc("/api/v1/ws", s.hub.HandleWS)

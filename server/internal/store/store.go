@@ -230,6 +230,71 @@ func (r *Room) ListPeers() []*Peer {
 	return list
 }
 
+// ListAllRooms returns all registered rooms with their peers
+func (s *Store) ListAllRooms() []*Room {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	rooms := make([]*Room, 0, len(s.roomsByID))
+	for _, room := range s.roomsByID {
+		rooms = append(rooms, room)
+	}
+	return rooms
+}
+
+// DeleteRoom completely deletes a room and returns it
+func (s *Store) DeleteRoom(roomID string) (*Room, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	room, exists := s.roomsByID[roomID]
+	if !exists {
+		return nil, ErrRoomNotFound
+	}
+
+	room.mu.Lock()
+	for pubKey := range room.Peers {
+		delete(s.peersByPub, pubKey)
+	}
+	room.mu.Unlock()
+
+	delete(s.roomsByID, roomID)
+	delete(s.rooms, normalize(room.Name))
+	return room, nil
+}
+
+// UpdateRoom updates a room's name or password
+func (s *Store) UpdateRoom(roomID, newName, newPassword string) (*Room, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	room, exists := s.roomsByID[roomID]
+	if !exists {
+		return nil, ErrRoomNotFound
+	}
+
+	if newName != "" && normalize(newName) != normalize(room.Name) {
+		normNew := normalize(newName)
+		if _, taken := s.rooms[normNew]; taken {
+			return nil, ErrRoomAlreadyExists
+		}
+		delete(s.rooms, normalize(room.Name))
+		room.Name = newName
+		s.rooms[normNew] = room
+	}
+
+	if newPassword != "" {
+		hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, err
+		}
+		room.PasswordHash = string(hash)
+	}
+
+	return room, nil
+}
+
 func normalize(s string) string {
 	return strings.ToLower(strings.TrimSpace(s))
 }
+

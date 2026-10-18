@@ -1,0 +1,10 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "Meshly",
+  "outputfilename": "meshly",
+  "wailsjsdir": "./frontend",
+  "author": {
+    "name": "thalisonnunes20",
+    "email": "71671505+thalisonnunes20@users.noreply.github.com"
+  }
+}
