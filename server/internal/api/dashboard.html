@@ -25,25 +25,97 @@
       font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
       background: var(--bg);
       color: var(--text);
-      padding: 32px 20px;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
+      align-items: flex-start;
+      padding: 32px 20px;
       -webkit-font-smoothing: antialiased;
     }
     .container {
       width: 100%;
       max-width: 860px;
     }
+    .hidden { display: none !important; }
+
+    /* Login Screen */
+    .login-wrapper {
+      min-height: 70vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+    .login-card {
+      width: 100%;
+      max-width: 340px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+    }
+    .login-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .login-subtitle {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 12px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+    }
+    .form-group input {
+      width: 100%;
+      background: #0e0e11;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 8px 10px;
+      color: var(--text);
+      font-size: 12px;
+      font-family: inherit;
+      outline: none;
+    }
+    .form-group input:focus {
+      border-color: #3b82f6;
+    }
+    .login-error {
+      background: var(--red-subtle);
+      border: 1px solid rgba(244, 63, 94, 0.25);
+      color: #fda4af;
+      font-size: 11px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    /* Dashboard Header */
     header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 24px;
-      padding-bottom: 16px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
       border-bottom: 1px solid var(--border);
     }
     .brand-title {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
       letter-spacing: 1.5px;
       color: var(--text);
@@ -54,38 +126,56 @@
       font-family: 'JetBrains Mono', monospace;
       margin-top: 2px;
     }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .user-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    /* Stats Bar */
     .stats-bar {
       display: flex;
-      gap: 12px;
-      margin-bottom: 24px;
+      gap: 10px;
+      margin-bottom: 20px;
       flex-wrap: wrap;
     }
     .stat-pill {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px 14px;
+      border-radius: 5px;
+      padding: 7px 12px;
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-muted);
     }
     .stat-pill strong { color: var(--text); }
     .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--emerald); }
     .dot.offline { background: var(--text-dim); }
+
+    /* Room Cards & Tables */
     .room-card {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 6px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       overflow: hidden;
     }
     .room-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 14px;
+      padding: 9px 12px;
       background: #16161a;
       border-bottom: 1px solid var(--border);
     }
@@ -99,7 +189,7 @@
       font-family: 'JetBrains Mono', monospace;
       font-size: 10px;
       background: rgba(255, 255, 255, 0.05);
-      padding: 1px 6px;
+      padding: 1px 5px;
       border-radius: 3px;
       color: var(--text-muted);
     }
@@ -113,7 +203,7 @@
       font-size: 12px;
     }
     th, td {
-      padding: 9px 14px;
+      padding: 8px 12px;
       text-align: left;
       border-bottom: 1px solid rgba(255, 255, 255, 0.025);
     }
@@ -135,6 +225,13 @@
       border: none;
       transition: all 0.12s ease;
     }
+    .btn-block { width: 100%; padding: 8px; margin-top: 4px; }
+    .btn-primary {
+      background: #27272a;
+      color: #fff;
+      border: 1px solid #3f3f46;
+    }
+    .btn-primary:hover { background: #3f3f46; }
     .btn-danger {
       background: transparent;
       border: 1px solid rgba(244, 63, 94, 0.3);
@@ -154,47 +251,142 @@
       color: var(--text);
     }
     .empty-state {
-      padding: 36px;
+      padding: 32px;
       text-align: center;
       color: var(--text-dim);
-      font-size: 13px;
+      font-size: 12px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <header>
-      <div>
-        <div class="brand-title">MESHLY CONTROL PLANE</div>
-        <div class="brand-subtitle">Server Dashboard</div>
-      </div>
-      <div>
-        <button class="btn btn-subtle" onclick="loadRooms()">Atualizar</button>
-      </div>
-    </header>
 
-    <div class="stats-bar">
-      <div class="stat-pill">
-        <span class="dot"></span>
-        <span>WireGuard :51820/UDP</span>
-      </div>
-      <div class="stat-pill">
-        <span>Redes: <strong id="stat-rooms">0</strong></span>
-      </div>
-      <div class="stat-pill">
-        <span>Usuários: <strong id="stat-peers">0</strong></span>
+    <!-- LOGIN SCREEN -->
+    <div id="login-section" class="login-wrapper">
+      <div class="login-card">
+        <div class="login-title">MESHLY CONTROL PLANE</div>
+        <div class="login-subtitle">Acesso Administrativo</div>
+
+        <div id="login-error" class="login-error hidden"></div>
+
+        <form id="login-form" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label for="login-user">Usuário</label>
+            <input type="text" id="login-user" value="admin" required autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label for="login-pass">Senha</label>
+            <input type="password" id="login-pass" placeholder="••••••••" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+        </form>
       </div>
     </div>
 
-    <div id="rooms-container">
-      <div class="empty-state">Carregando redes...</div>
+    <!-- DASHBOARD VIEW -->
+    <div id="dashboard-section" class="hidden">
+      <header>
+        <div>
+          <div class="brand-title">MESHLY CONTROL PLANE</div>
+          <div class="brand-subtitle">Server Dashboard</div>
+        </div>
+        <div class="header-actions">
+          <span id="logged-user" class="user-pill">admin</span>
+          <button class="btn btn-subtle" onclick="loadRooms()">Atualizar</button>
+          <button class="btn btn-subtle" onclick="handleLogout()">Sair</button>
+        </div>
+      </header>
+
+      <div class="stats-bar">
+        <div class="stat-pill">
+          <span class="dot"></span>
+          <span>WireGuard :51820/UDP</span>
+        </div>
+        <div class="stat-pill">
+          <span>Redes: <strong id="stat-rooms">0</strong></span>
+        </div>
+        <div class="stat-pill">
+          <span>Usuários: <strong id="stat-peers">0</strong></span>
+        </div>
+      </div>
+
+      <div id="rooms-container">
+        <div class="empty-state">Carregando redes...</div>
+      </div>
     </div>
+
   </div>
 
   <script>
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/v1/admin/me');
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById('logged-user').textContent = data.user || 'admin';
+          showDashboard();
+          loadRooms();
+        } else {
+          showLogin();
+        }
+      } catch (err) {
+        showLogin();
+      }
+    }
+
+    function showLogin() {
+      document.getElementById('login-section').classList.remove('hidden');
+      document.getElementById('dashboard-section').classList.add('hidden');
+    }
+
+    function showDashboard() {
+      document.getElementById('login-section').classList.add('hidden');
+      document.getElementById('dashboard-section').classList.remove('hidden');
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const user = document.getElementById('login-user').value.trim();
+      const pass = document.getElementById('login-pass').value;
+      const errorEl = document.getElementById('login-error');
+
+      errorEl.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/v1/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: user, password: pass })
+        });
+
+        if (res.ok) {
+          showDashboard();
+          loadRooms();
+        } else {
+          const data = await res.json();
+          errorEl.textContent = data.error || 'Credenciais inválidas.';
+          errorEl.classList.remove('hidden');
+        }
+      } catch (err) {
+        errorEl.textContent = 'Erro ao conectar ao servidor.';
+        errorEl.classList.remove('hidden');
+      }
+    }
+
+    async function handleLogout() {
+      try {
+        await fetch('/api/v1/admin/logout', { method: 'POST' });
+      } catch (e) {}
+      showLogin();
+    }
+
     async function loadRooms() {
       try {
         const res = await fetch('/api/v1/admin/rooms');
+        if (res.status === 401) {
+          showLogin();
+          return;
+        }
         const rooms = await res.json();
         renderRooms(rooms);
       } catch (err) {
@@ -218,7 +410,7 @@
       container.innerHTML = rooms.map(r => {
         const peers = r.peers || [];
         const peersRows = peers.length === 0 
-          ? '<tr><td colspan="5" style="text-align:center; color:#52525b; padding:16px;">Nenhum usuário conectado</td></tr>'
+          ? '<tr><td colspan="5" style="text-align:center; color:#52525b; padding:14px;">Nenhum usuário conectado</td></tr>'
           : peers.map(p => `
             <tr>
               <td>
@@ -308,8 +500,14 @@
       return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
-    loadRooms();
-    setInterval(loadRooms, 5000);
+    // Inicialização
+    checkAuth();
+    setInterval(() => {
+      const dash = document.getElementById('dashboard-section');
+      if (!dash.classList.contains('hidden')) {
+        loadRooms();
+      }
+    }, 5000);
   </script>
 </body>
 </html>

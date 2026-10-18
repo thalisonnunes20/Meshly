@@ -12,6 +12,8 @@ type Config struct {
 	PublicEndpoint string // Host:Port to advertise to clients
 	VirtualCIDR    string
 	DataDir        string
+	AdminUser      string
+	AdminPassword  string
 }
 
 func Load() *Config {
@@ -21,6 +23,8 @@ func Load() *Config {
 	publicEndpoint := getEnvString("MESHLY_PUBLIC_ENDPOINT", "")
 	virtualCIDR := getEnvString("MESHLY_VIRTUAL_CIDR", "26.0.0.0/8")
 	dataDir := getEnvString("MESHLY_DATA_DIR", "/etc/meshly")
+	adminUser := getEnvString("MESHLY_ADMIN_USER", "admin")
+	adminPassword := getEnvString("MESHLY_ADMIN_PASSWORD", "admin123")
 
 	return &Config{
 		APIPort:        apiPort,
@@ -29,6 +33,8 @@ func Load() *Config {
 		PublicEndpoint: publicEndpoint,
 		VirtualCIDR:    virtualCIDR,
 		DataDir:        dataDir,
+		AdminUser:      adminUser,
+		AdminPassword:  adminPassword,
 	}
 }
 

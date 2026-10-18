@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"strings"
+	"time"
 
 	"github.com/thalisonnunes20/meshly/server/internal/ws"
 )
@@ -12,7 +14,84 @@ import (
 //go:embed dashboard.html
 var dashboardHTML string
 
+func (s *Server) isAdminAuthenticated(r *http.Request) bool {
+	// Check cookie
+	if cookie, err := r.Cookie("meshly_session"); err == nil {
+		if cookie.Value == "authenticated" {
+			return true
+		}
+	}
+
+	// Check Authorization header (Bearer <password>)
+	authHeader := r.Header.Get("Authorization")
+	if strings.HasPrefix(authHeader, "Bearer ") {
+		token := strings.TrimPrefix(authHeader, "Bearer ")
+		if token == s.cfg.AdminPassword {
+			return true
+		}
+	}
+
+	return false
+}
+
+type AdminLoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+func (s *Server) handleAdminLogin(w http.ResponseWriter, r *http.Request) {
+	var req AdminLoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if req.Username != s.cfg.AdminUser || req.Password != s.cfg.AdminPassword {
+		writeError(w, http.StatusUnauthorized, "usuário ou senha incorretos")
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "meshly_session",
+		Value:    "authenticated",
+		Path:     "/",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Expires:  time.Now().Add(24 * time.Hour),
+	})
+
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok", "user": req.Username})
+}
+
+func (s *Server) handleAdminLogout(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "meshly_session",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		MaxAge:   -1,
+	})
+
+	writeJSON(w, http.StatusOK, map[string]string{"status": "logged_out"})
+}
+
+func (s *Server) handleAdminMe(w http.ResponseWriter, r *http.Request) {
+	if !s.isAdminAuthenticated(r) {
+		writeError(w, http.StatusUnauthorized, "não autenticado")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"authenticated": true,
+		"user":          s.cfg.AdminUser,
+	})
+}
+
 func (s *Server) handleAdminListRooms(w http.ResponseWriter, r *http.Request) {
+	if !s.isAdminAuthenticated(r) {
+		writeError(w, http.StatusUnauthorized, "não autenticado")
+		return
+	}
+
 	rooms := s.store.ListAllRooms()
 
 	type PeerInfo struct {
@@ -58,6 +137,11 @@ func (s *Server) handleAdminListRooms(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleAdminDeleteRoom(w http.ResponseWriter, r *http.Request) {
+	if !s.isAdminAuthenticated(r) {
+		writeError(w, http.StatusUnauthorized, "não autenticado")
+		return
+	}
+
 	roomID := r.PathValue("id")
 	room, err := s.store.DeleteRoom(roomID)
 	if err != nil {
@@ -74,6 +158,11 @@ func (s *Server) handleAdminDeleteRoom(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleAdminKickPeer(w http.ResponseWriter, r *http.Request) {
+	if !s.isAdminAuthenticated(r) {
+		writeError(w, http.StatusUnauthorized, "não autenticado")
+		return
+	}
+
 	roomID := r.PathValue("id")
 	pubKeyEscaped := r.PathValue("pubkey")
 
@@ -107,6 +196,11 @@ type UpdateRoomRequest struct {
 }
 
 func (s *Server) handleAdminUpdateRoom(w http.ResponseWriter, r *http.Request) {
+	if !s.isAdminAuthenticated(r) {
+		writeError(w, http.StatusUnauthorized, "não autenticado")
+		return
+	}
+
 	roomID := r.PathValue("id")
 	var req UpdateRoomRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

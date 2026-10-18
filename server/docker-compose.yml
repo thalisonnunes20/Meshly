@@ -12,18 +12,20 @@ services:
     sysctls:
       - net.ipv4.ip_forward=1
     ports:
-      - "8080:8080"       # Meshly API + WebSockets
+      - "8080:8080"       # Meshly API + WebSockets (Altere a primeira porta se quiser, ex: "9000:8080" ou "80:8080")
       - "51820:51820/udp" # WireGuard Tunnel
     volumes:
       - meshly_data:/etc/meshly
-      - /lib/modules:/lib/modules:ro # Access host WireGuard kernel module if available
+      - /lib/modules:/lib/modules:ro
     environment:
       - MESHLY_API_PORT=8080
       - MESHLY_WG_PORT=51820
       - MESHLY_WG_INTERFACE=wg0
       - MESHLY_DATA_DIR=/etc/meshly
-      # Set your server IP or domain here, or leave empty for auto-detection:
-      # - MESHLY_PUBLIC_ENDPOINT=seu-ip-ou-dominio.com
+      - MESHLY_ADMIN_USER=admin
+      - MESHLY_ADMIN_PASSWORD=admin123
+      # Defina o IP público ou domínio da sua VPS, ou deixe vazio para auto-detecção:
+      # - MESHLY_PUBLIC_ENDPOINT=vpn.seusite.com
 
 volumes:
   meshly_data:

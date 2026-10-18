@@ -43,6 +43,11 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("POST /api/v1/rooms/leave", s.handleLeaveRoom)
 	mux.HandleFunc("GET /api/v1/rooms/{id}/peers", s.handleListPeers)
 
+	// Admin Auth
+	mux.HandleFunc("POST /api/v1/admin/login", s.handleAdminLogin)
+	mux.HandleFunc("POST /api/v1/admin/logout", s.handleAdminLogout)
+	mux.HandleFunc("GET /api/v1/admin/me", s.handleAdminMe)
+
 	// Admin API operations
 	mux.HandleFunc("GET /api/v1/admin/rooms", s.handleAdminListRooms)
 	mux.HandleFunc("DELETE /api/v1/admin/rooms/{id}", s.handleAdminDeleteRoom)
