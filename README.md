@@ -126,6 +126,12 @@ Meshly/client/build/bin/meshly.exe
    ```
    *O executável nativo otimizado será gerado em `build/bin/meshly.exe` (Windows) ou `build/bin/meshly` (Linux).*
 
+### Comportamento em Segundo Plano (System Tray):
+- Ao clicar no botão **Fechar (X)** da janela, o aplicativo não é encerrado: ele minimiza silenciosamente para a **bandeja do sistema** (área de notificação ao lado do relógio do Windows).
+- Clicar com o **botão direito** no ícone da bandeja permite:
+  - **Abrir Meshly:** Restaura a janela na tela.
+  - **Sair:** Encerra completamente o aplicativo e os túneis.
+
 ### Dados e Persistência do Usuário:
 O aplicativo salva automaticamente as credenciais e redes salvas em:
 - **Windows:** `%APPDATA%\Meshly\config.json`

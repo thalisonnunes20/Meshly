@@ -263,13 +263,14 @@ function renderPeers(peers) {
 
   peers.forEach((peer) => {
     const isSelf = peer.public_key === clientPublicKey;
+    const initialText = isSelf ? "Conectado" : (peer.is_online ? "-- ms" : "Sem Acesso");
+    const initialClass = isSelf ? "online" : (peer.is_online ? "" : "offline");
 
     const item = document.createElement("div");
     item.className = "peer-item";
 
     item.innerHTML = `
       <div class="peer-left">
-        <span class="status-dot ${peer.is_online ? 'online' : ''}"></span>
         <div class="peer-info">
           <span class="peer-nickname">
             ${escapeHTML(peer.nickname)}
@@ -279,7 +280,7 @@ function renderPeers(peers) {
         </div>
       </div>
       <div class="peer-right">
-        <span class="peer-ping" id="ping-${peer.virtual_ip}">-- ms</span>
+        <span class="peer-ping ${initialClass}" id="ping-${peer.virtual_ip}">${initialText}</span>
         <button class="btn-copy" onclick="copyText('${peer.virtual_ip}', this)">
           <span class="copy-text">Copiar</span>
         </button>
@@ -295,7 +296,13 @@ function renderPeers(peers) {
           const ms = await window.go.main.App.PingPeer(peer.virtual_ip);
           const pingEl = document.getElementById(`ping-${peer.virtual_ip}`);
           if (pingEl) {
-            pingEl.textContent = ms >= 0 ? `${ms} ms` : "timeout";
+            if (ms >= 0) {
+              pingEl.textContent = `${ms} ms`;
+              pingEl.className = "peer-ping online";
+            } else {
+              pingEl.textContent = "Sem Acesso";
+              pingEl.className = "peer-ping offline";
+            }
           }
         } catch (e) {}
       }, 300);

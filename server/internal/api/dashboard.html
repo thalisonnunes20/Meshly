@@ -160,8 +160,28 @@
       color: var(--text-muted);
     }
     .stat-pill strong { color: var(--text); }
-    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--emerald); }
-    .dot.offline { background: var(--text-dim); }
+
+    /* Health Tags */
+    .health-tag {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      display: inline-block;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .health-tag.online {
+      color: var(--emerald);
+      background: var(--emerald-subtle);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .health-tag.offline {
+      color: var(--red);
+      background: var(--red-subtle);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
 
     /* Room Cards & Tables */
     .room-card {
@@ -299,8 +319,7 @@
 
       <div class="stats-bar">
         <div class="stat-pill">
-          <span class="dot"></span>
-          <span>WireGuard :51820/UDP</span>
+          <span>WireGuard <strong>:51820/UDP</strong></span>
         </div>
         <div class="stat-pill">
           <span>Redes: <strong id="stat-rooms">0</strong></span>
@@ -410,12 +429,14 @@
       container.innerHTML = rooms.map(r => {
         const peers = r.peers || [];
         const peersRows = peers.length === 0 
-          ? '<tr><td colspan="5" style="text-align:center; color:#52525b; padding:14px;">Nenhum usuário conectado</td></tr>'
+          ? '<tr><td colspan="6" style="text-align:center; color:#52525b; padding:14px;">Nenhum usuário conectado</td></tr>'
           : peers.map(p => `
             <tr>
               <td>
-                <span class="dot ${p.is_online ? '' : 'offline'}" style="display:inline-block; margin-right:6px;"></span>
                 <strong style="color:#fafafa;">${escape(p.nickname)}</strong>
+              </td>
+              <td>
+                <span class="health-tag ${p.is_online ? 'online' : 'offline'}">${p.is_online ? 'Conectado' : 'Sem Acesso'}</span>
               </td>
               <td class="mono" style="color:#a1a1aa;">${p.virtual_ip}</td>
               <td class="mono" style="color:#52525b; font-size:11px;" title="${p.public_key}">${p.public_key.substring(0, 16)}...</td>
@@ -443,6 +464,7 @@
               <thead>
                 <tr>
                   <th>Usuário</th>
+                  <th>Status</th>
                   <th>IP Virtual</th>
                   <th>Chave WireGuard</th>
                   <th>Conectado Em</th>

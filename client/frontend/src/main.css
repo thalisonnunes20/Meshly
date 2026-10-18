@@ -293,21 +293,9 @@ body {
 .server-badge {
   display: flex;
   align-items: center;
-  gap: 7px;
   font-size: 11px;
   font-family: var(--font-mono);
   color: var(--text-muted);
-}
-
-.status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--text-dim);
-}
-
-.status-dot.online {
-  background: var(--emerald);
 }
 
 .topbar-actions {
@@ -481,13 +469,6 @@ body {
   gap: 8px;
 }
 
-.room-indicator {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--emerald);
-}
-
 .room-title {
   font-size: 13px;
   font-weight: 600;
@@ -569,7 +550,23 @@ body {
 .peer-ping {
   font-size: 10px;
   font-family: var(--font-mono);
-  color: var(--text-muted);
+  color: var(--text-dim);
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+}
+
+.peer-ping.online {
+  color: var(--emerald);
+  border-color: rgba(16, 185, 129, 0.3);
+  background: var(--emerald-subtle);
+}
+
+.peer-ping.offline {
+  color: var(--red);
+  border-color: rgba(244, 63, 94, 0.3);
+  background: var(--red-subtle);
 }
 
 /* Saved Rooms Section */
